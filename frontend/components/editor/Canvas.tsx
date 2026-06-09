@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, memo } from 'react'
 
 interface PageBlock {
   id: string
@@ -13,9 +13,13 @@ interface CanvasProps {
   onUpdateBlock: (id: string, props: Record<string, unknown>) => void
   onRemoveBlock: (id: string) => void
   onDropBlock: (type: string) => void
+  onUndo?: () => void
+  onRedo?: () => void
+  canUndo?: boolean
+  canRedo?: boolean
 }
 
-export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlock }: CanvasProps) {
+export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlock, onUndo, onRedo, canUndo, canRedo }: CanvasProps) {
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
   }, [])
@@ -52,11 +56,30 @@ export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlo
           />
         ))}
       </div>
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/90 border border-gray-800 rounded-md px-2 py-1.5 shadow-lg z-10">
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="px-2 py-1 text-xs font-medium text-gray-300 rounded hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          title="Undo (Ctrl+Z)"
+        >
+          Undo
+        </button>
+        <div className="w-px h-3 bg-gray-700" />
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          className="px-2 py-1 text-xs font-medium text-gray-300 rounded hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          title="Redo (Ctrl+Y)"
+        >
+          Redo
+        </button>
+      </div>
     </div>
   )
 }
 
-function PageBlockRenderer({
+const PageBlockRenderer = memo(function PageBlockRenderer({
   block,
   onUpdate,
   onRemove,
@@ -81,65 +104,88 @@ function PageBlockRenderer({
     </div>
   )
 
+  function isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value)
+      return url.protocol === 'http:' || url.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
+
   switch (type) {
     case 'hero':
       return wrapper(
-        <div className={`text-${String(props.align || 'center')}`}>
-          <h2 className="text-2xl font-bold">{String(props.title || 'Hero')}</h2>
-          <p className="text-gray-400 mt-1">{String(props.subtitle || '')}</p>
+        <div className={`text-${String(props?.align || 'center')}`}>
+          <h2 className="text-2xl font-bold">{String(props?.title || 'Hero')}</h2>
+          <p className="text-gray-400 mt-1">{String(props?.subtitle || '')}</p>
         </div>
       )
     case 'text':
       return wrapper(
-        <p className={`text-${String(props.align || 'left')} text-gray-300 leading-relaxed`}>
-          {String(props.content || '')}
+        <p className={`text-${String(props?.align || 'left')} text-gray-300 leading-relaxed`}>
+          {String(props?.content || '')}
         </p>
       )
-    case 'image':
+    case 'image': {
+      const imageSrc = String(props?.src || '')
       return wrapper(
-        <img
-          src={String(props.src || '')}
-          alt={String(props.alt || '')}
-          className="rounded-md"
-          style={{ width: String(props.width || '100%'), display: 'block' }}
-        />
+        isValidUrl(imageSrc) ? (
+          <img
+            src={imageSrc}
+            alt={String(props?.alt || '')}
+            className="rounded-md"
+            style={{ width: String(props?.width || '100%'), display: 'block' }}
+          />
+        ) : (
+          <div className="rounded-md border border-gray-700 bg-gray-800 p-4 text-center text-sm text-gray-400">
+            Invalid image URL
+          </div>
+        )
       )
+    }
     case 'button':
       return wrapper(
         <div className="text-center">
           <a
-            href={String(props.url || '#')}
+            href={String(props?.url || '#')}
             className="inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 transition"
           >
-            {String(props.label || 'Button')}
+            {String(props?.label || 'Button')}
           </a>
         </div>
       )
     case 'form':
       return wrapper(
-        <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-          {(Array.isArray(props.fields) ? props.fields : []).map((field: string) => (
-            <label key={field} className="block text-sm text-gray-300">
-              {field}
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
-              />
-            </label>
-          ))}
+        <form className="space-y-3" noValidate onSubmit={(e) => e.preventDefault()}>
+          {(Array.isArray(props?.fields) ? props.fields : []).map((field: string) => {
+            const fieldId = `field-${field.toLowerCase().replace(/\s+/g, '-')}`
+            return (
+              <label key={field} htmlFor={fieldId} className="block text-sm text-gray-300">
+                {field}
+                <input
+                  id={fieldId}
+                  name={field}
+                  type="text"
+                  required
+                  className="mt-1 block w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+                />
+              </label>
+            )
+          })}
           <button
             type="submit"
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition"
           >
-            {String(props.submitLabel || 'Submit')}
+            {String(props?.submitLabel || 'Submit')}
           </button>
         </form>
       )
     case 'spacer':
-      return wrapper(<div style={{ height: Number(props.height || 40) }} />)
+      return wrapper(<div style={{ height: Number(props?.height || 40) }} />)
     default:
       return wrapper(
         <div className="text-xs text-gray-500">Unknown block type: {type}</div>
       )
   }
-}
+})

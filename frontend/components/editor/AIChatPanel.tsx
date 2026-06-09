@@ -23,9 +23,10 @@ export default function AIChatPanel({ projectId, onBlocksGenerated, onClose }: A
     setLoading(true)
     try {
       const data = await generateBlocks({ prompt: userText, projectId })
-      if (data.blocks && Array.isArray(data.blocks)) {
-        onBlocksGenerated(data.blocks)
-        setMessages((prev) => [...prev, { role: 'assistant', text: `Added ${data.blocks.length} block(s) to the canvas.` }])
+      const generatedBlocks = data.blocks
+      if (generatedBlocks && Array.isArray(generatedBlocks)) {
+        onBlocksGenerated(generatedBlocks)
+        setMessages((prev) => [...prev, { role: 'assistant', text: `Added ${generatedBlocks.length} block(s) to the canvas.` }])
       } else {
         setMessages((prev) => [...prev, { role: 'assistant', text: 'No blocks were generated.' }])
       }
@@ -79,7 +80,7 @@ export default function AIChatPanel({ projectId, onBlocksGenerated, onClose }: A
         <button
           onClick={handleSend}
           disabled={loading || !prompt.trim()}
-          className="mt-2 w-full rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-600 transition disabled:opacity-50 inline-flex items-center justify-center gap-1"
+          className="mt-2 w-full rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-600 active:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-700 inline-flex items-center justify-center gap-1"
         >
           <Send className="h-3.5 w-3.5" />
           Send
