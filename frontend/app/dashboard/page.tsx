@@ -24,16 +24,8 @@ export default function DashboardPage() {
             <span className="text-4xl text-gray-500 mb-2">+</span>
             <span className="text-sm font-medium text-gray-400">Create New Project</span>
           </Link>
-          <ProjectCard
-            title="Agency Landing"
-            lastEdited="2 hours ago"
-            thumbnail="/templates/agency-thumb.png"
-          />
-          <ProjectCard
-            title="SaaS Demo"
-            lastEdited="Yesterday"
-            thumbnail="/templates/saas-thumb.png"
-          />
+          <ProjectCard title="Agency Landing" lastEdited="2 hours ago" />
+          <ProjectCard title="SaaS Demo" lastEdited="Yesterday" />
         </div>
       </section>
     </main>
