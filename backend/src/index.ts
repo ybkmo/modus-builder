@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import projectsRouter from './routes/projects';
 import aiRouter from './routes/ai';
 import deployRouter from './routes/deploy';
+import previewsRouter from './routes/previews';
 import { authMiddleware } from './middleware/auth';
 import { aiRateLimiter, rateLimiter } from './middleware/rateLimit';
 import pool from './db/connection';
@@ -20,6 +21,7 @@ app.use(rateLimiter);
 app.use('/api/projects', authMiddleware, projectsRouter);
 app.use('/api/ai', aiRateLimiter, aiRouter);
 app.use('/api/projects', authMiddleware, deployRouter);
+app.use('/api/previews', previewsRouter);
 
 // Health check endpoint
 app.get('/health', async (_req: Request, res: Response) => {

@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Monitor, Tablet, Smartphone, HelpCircle } from 'lucide-react'
+import { getTemplateById } from '@/data/templates'
 import Canvas from '@/components/editor/Canvas'
 import BlockToolbar from '@/components/editor/BlockToolbar'
 import AIChatPanel from '@/components/editor/AIChatPanel'
 import ExportModal from '@/components/editor/ExportModal'
 import DeployButton from '@/components/editor/DeployButton'
+import PreviewButton from '@/components/editor/PreviewButton'
 import KeyboardShortcuts from '@/components/ui/KeyboardShortcuts'
 
 type PageBlock = { id: string; type: string; props: Record<string, unknown> }
@@ -33,7 +35,24 @@ export default function EditorPage() {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [draftRestored, setDraftRestored] = useState(false)
 
+  const searchParams = useSearchParams()
   const draftKey = `modus-builder-draft-${id}`
+
+  // Load template for new projects
+  useEffect(() => {
+    if (id !== 'new') return
+    const templateId = searchParams.get('template') || (() => {
+      try { return localStorage.getItem('modus-selected-template') } catch { return null }
+    })()
+    if (!templateId) return
+    const template = getTemplateById(templateId)
+    if (!template) return
+    try { localStorage.removeItem('modus-selected-template') } catch { /* ignore */ }
+
+    const freshBlocks = template.blocks.map((b) => ({ ...b, id: crypto.randomUUID() }))
+    setBlocks(freshBlocks)
+    setHistoryState({ history: [freshBlocks], index: 0 })
+  }, [id, searchParams])
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -197,6 +216,7 @@ export default function EditorPage() {
               AI Assistant
             </button>
             <ExportModal blocks={blocks} onAfterExport={clearDraft} />
+            <PreviewButton blocks={blocks} />
             <DeployButton projectId={id} onAfterDeploy={clearDraft} />
             <button
               onClick={() => setShowShortcuts(true)}
@@ -249,6 +269,31 @@ function getDefaultProps(type: string): Record<string, unknown> {
       return { fields: ['Name', 'Email'], submitLabel: 'Submit' }
     case 'spacer':
       return { height: 40 }
+    case 'pricing_table':
+      return { title: 'Pricing', tiers: [
+        { name: 'Basic', price: '$9/mo', features: ['1 site', 'Email support'], cta: 'Choose Basic' },
+        { name: 'Pro', price: '$29/mo', features: ['10 sites', 'Priority support'], cta: 'Choose Pro' },
+        { name: 'Enterprise', price: '$99/mo', features: ['Unlimited', '24/7 phone support'], cta: 'Contact Sales' }
+      ]}
+    case 'testimonials':
+      return { title: 'Testimonials', quotes: [
+        { name: 'Sarah L.', role: 'CEO', text: 'Transformed our online presence completely.' },
+        { name: 'James M.', role: 'CTO', text: 'The best platform we have ever used.' }
+      ]}
+    case 'faq':
+      return { title: 'FAQ', items: [
+        { question: 'What is included?', answer: 'Everything you need to get started.' },
+        { question: 'How do I contact support?', answer: 'Email us anytime at support@example.com.' }
+      ]}
+    case 'gallery':
+      return { images: [
+        { src: 'https://picsum.photos/400/300?random=1', caption: 'Image 1' },
+        { src: 'https://picsum.photos/400/300?random=2', caption: 'Image 2' },
+        { src: 'https://picsum.photos/400/300?random=3', caption: 'Image 3' },
+        { src: 'https://picsum.photos/400/300?random=4', caption: 'Image 4' }
+      ]}
+    case 'video':
+      return { src: 'https://www.youtube.com/embed/dQw4w9WgXcQ', caption: 'Demo Video', title: 'Video' }
     default:
       return {}
   }

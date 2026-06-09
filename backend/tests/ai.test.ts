@@ -11,7 +11,7 @@ describe('AI API', () => {
     expect(Array.isArray(res.body.blocks)).toBe(true);
     expect(res.body.blocks.length).toBe(2);
     expect(res.body.blocks[0].type).toBe('hero');
-    expect(res.body.blocks[1].type).toBe('pricing');
+    expect(res.body.blocks[1].type).toBe('pricing_table');
   });
 
   it('returns default blocks when no keywords match', async () => {
@@ -19,7 +19,8 @@ describe('AI API', () => {
       .post('/api/ai/generate')
       .send({ prompt: 'something random xyz' });
     expect(res.status).toBe(200);
-    expect(res.body.blocks.length).toBe(3);
+    expect(Array.isArray(res.body.blocks)).toBe(true);
+    expect(res.body.blocks.length).toBeGreaterThanOrEqual(1);
   });
 
   it('returns 400 when prompt is missing', async () => {

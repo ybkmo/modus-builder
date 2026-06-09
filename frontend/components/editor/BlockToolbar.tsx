@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { Type, Image, Square, MousePointerClick, FormInput, MoveVertical } from 'lucide-react'
+import { Type, Image, Square, MousePointerClick, FormInput, MoveVertical, DollarSign, MessageSquareQuote, HelpCircle, Grid3X3, Play } from 'lucide-react'
 
 const BLOCK_TYPES = [
   { type: 'hero', label: 'Hero', icon: Square },
@@ -10,6 +10,11 @@ const BLOCK_TYPES = [
   { type: 'button', label: 'Button', icon: MousePointerClick },
   { type: 'form', label: 'Form', icon: FormInput },
   { type: 'spacer', label: 'Spacer', icon: MoveVertical },
+  { type: 'pricing_table', label: 'Pricing', icon: DollarSign },
+  { type: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
+  { type: 'faq', label: 'FAQ', icon: HelpCircle },
+  { type: 'gallery', label: 'Gallery', icon: Grid3X3 },
+  { type: 'video', label: 'Video', icon: Play },
 ]
 
 interface BlockToolbarProps {
