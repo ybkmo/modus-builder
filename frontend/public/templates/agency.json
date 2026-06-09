@@ -1,0 +1,75 @@
+{
+  "blocks": [
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "props": {
+        "title": "MODUS Agency",
+        "subtitle": "We build digital experiences that convert.",
+        "align": "center"
+      }
+    },
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "MODUS is a full-service creative agency specializing in brand strategy, web design, and performance marketing. We partner with ambitious founders to launch products people love.",
+        "align": "center"
+      }
+    },
+    {
+      "id": "spacer-1",
+      "type": "spacer",
+      "props": { "height": 32 }
+    },
+    {
+      "id": "button-1",
+      "type": "button",
+      "props": {
+        "label": "Book a call",
+        "url": "#contact",
+        "variant": "primary"
+      }
+    },
+    {
+      "id": "spacer-2",
+      "type": "spacer",
+      "props": { "height": 48 }
+    },
+    {
+      "id": "image-1",
+      "type": "image",
+      "props": {
+        "src": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "alt": "Office workspace",
+        "width": "100%"
+      }
+    },
+    {
+      "id": "spacer-3",
+      "type": "spacer",
+      "props": { "height": 48 }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Trusted by fast-growing teams.",
+        "align": "center"
+      }
+    },
+    {
+      "id": "spacer-4",
+      "type": "spacer",
+      "props": { "height": 24 }
+    },
+    {
+      "id": "form-1",
+      "type": "form",
+      "props": {
+        "fields": ["Name", "Email", "Company"],
+        "submitLabel": "Get in touch"
+      }
+    }
+  ]
+}
