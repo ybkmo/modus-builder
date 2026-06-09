@@ -2,14 +2,18 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { Monitor, Tablet, Smartphone } from 'lucide-react'
+import { Monitor, Tablet, Smartphone, HelpCircle } from 'lucide-react'
 import Canvas from '@/components/editor/Canvas'
 import BlockToolbar from '@/components/editor/BlockToolbar'
 import AIChatPanel from '@/components/editor/AIChatPanel'
 import ExportModal from '@/components/editor/ExportModal'
 import DeployButton from '@/components/editor/DeployButton'
+import KeyboardShortcuts from '@/components/ui/KeyboardShortcuts'
 
 type PageBlock = { id: string; type: string; props: Record<string, unknown> }
+
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
+const SAVE_INTERVAL = 3000
 
 export default function EditorPage() {
   const { id } = useParams() as { id: string }
@@ -26,6 +30,53 @@ export default function EditorPage() {
 
   const [showAI, setShowAI] = useState(false)
   const [breakpoint, setBreakpoint] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+
+  const draftKey = `modus-builder-draft-${id}`
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed && Array.isArray(parsed.blocks) && typeof parsed.savedAt === 'number') {
+          const age = Date.now() - parsed.savedAt
+          if (age < TWENTY_FOUR_HOURS) {
+            setBlocks(parsed.blocks)
+            setHistoryState({ history: [parsed.blocks], index: 0 })
+            setDraftRestored(true)
+          } else {
+            localStorage.removeItem(draftKey)
+          }
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [draftKey])
+
+  // Auto-save to localStorage every 3 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      try {
+        const payload = { blocks: blocksRef.current, savedAt: Date.now() }
+        localStorage.setItem(draftKey, JSON.stringify(payload))
+      } catch {
+        // storage may be full
+      }
+    }, SAVE_INTERVAL)
+    return () => clearInterval(timer)
+  }, [draftKey])
+
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(draftKey)
+    } catch {
+      // ignore
+    }
+  }, [draftKey])
 
   const commitBlocks = useCallback((updater: (prev: PageBlock[]) => PageBlock[]) => {
     const computed = updater(blocksRef.current)
@@ -69,6 +120,10 @@ export default function EditorPage() {
           handleRedo()
         }
       }
+      if (e.key === 'Escape') {
+        setShowAI(false)
+        setShowShortcuts(false)
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -98,6 +153,17 @@ export default function EditorPage() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <BlockToolbar onAddBlock={handleAddBlock} />
       <div className="flex-1 flex flex-col min-w-0">
+        {draftRestored && (
+          <div className="flex items-center justify-between px-4 py-2 bg-accent/10 border-b border-accent/20 text-xs text-accent">
+            <span>Draft restored from local storage.</span>
+            <button
+              onClick={() => setDraftRestored(false)}
+              className="text-accent hover:text-white font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <h1 className="text-sm font-semibold tracking-wide text-gray-300">MODUS EDITOR</h1>
           <div className="flex items-center gap-2">
@@ -130,8 +196,16 @@ export default function EditorPage() {
             >
               AI Assistant
             </button>
-            <ExportModal blocks={blocks} />
-            <DeployButton projectId={id} />
+            <ExportModal blocks={blocks} onAfterExport={clearDraft} />
+            <DeployButton projectId={id} onAfterDeploy={clearDraft} />
+            <button
+              onClick={() => setShowShortcuts(true)}
+              className="rounded-md bg-gray-800 px-2 py-1.5 text-xs font-medium text-white hover:bg-gray-700 transition inline-flex items-center gap-1"
+              title="Keyboard shortcuts"
+            >
+              <HelpCircle className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">?</span>
+            </button>
           </div>
         </div>
         <div className="flex flex-1 overflow-hidden justify-center bg-gray-950">
@@ -156,6 +230,7 @@ export default function EditorPage() {
           )}
         </div>
       </div>
+      {showShortcuts && <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />}
     </div>
   )
 }

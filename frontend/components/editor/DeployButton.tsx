@@ -6,9 +6,10 @@ import { Globe, Loader2 } from 'lucide-react'
 
 interface DeployButtonProps {
   projectId: string
+  onAfterDeploy?: () => void
 }
 
-export default function DeployButton({ projectId }: DeployButtonProps) {
+export default function DeployButton({ projectId, onAfterDeploy }: DeployButtonProps) {
   const [loading, setLoading] = useState(false)
   const [deployedUrl, setDeployedUrl] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -20,6 +21,7 @@ export default function DeployButton({ projectId }: DeployButtonProps) {
       const data = await res.json()
       setDeployedUrl(data.url || null)
       setShowModal(true)
+      onAfterDeploy?.()
     } catch (e) {
       console.error(e)
       setDeployedUrl(null)
@@ -27,7 +29,7 @@ export default function DeployButton({ projectId }: DeployButtonProps) {
     } finally {
       setLoading(false)
     }
-  }, [projectId])
+  }, [projectId, onAfterDeploy])
 
   return (
     <>

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { validate } from '../middleware/validate';
+import { updateProjectSchema } from '../validation';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -65,10 +67,13 @@ router.get('/:id', (req, res) => {
 });
 
 // PUT /:id — save full blocks array
-router.put('/:id', (req, res) => {
+router.put('/:id', validate(updateProjectSchema), (req, res) => {
   const project = projects.find((p) => p.id === req.params.id);
   if (!project) {
     return res.status(404).json({ error: 'Project not found' });
+  }
+  if (req.body.title !== undefined) {
+    project.name = req.body.title;
   }
   project.blocks = req.body.blocks || [];
   project.updatedAt = new Date().toISOString();

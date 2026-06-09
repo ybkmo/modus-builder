@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { validate } from '../middleware/validate';
+import { generateBlocksSchema } from '../validation';
 
 const router = Router();
 
@@ -82,11 +84,8 @@ const keywordBlocks: Record<string, any> = {
 
 const keywords = Object.keys(keywordBlocks);
 
-router.post('/generate', (req, res) => {
+router.post('/generate', validate(generateBlocksSchema), (req, res) => {
   const { prompt } = req.body;
-  if (!prompt || typeof prompt !== 'string') {
-    return res.status(400).json({ error: 'prompt is required' });
-  }
 
   const lower = prompt.toLowerCase();
   const matched = keywords.filter((k) => lower.includes(k));

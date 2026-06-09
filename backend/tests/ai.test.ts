@@ -27,6 +27,8 @@ describe('AI API', () => {
       .post('/api/ai/generate')
       .send({});
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('prompt is required');
+    expect(res.body.error).toBe('Validation failed');
+    expect(res.body.issues).toBeDefined();
+    expect(res.body.issues.length).toBeGreaterThan(0);
   });
 });

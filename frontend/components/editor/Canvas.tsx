@@ -19,7 +19,7 @@ interface CanvasProps {
   canRedo?: boolean
 }
 
-export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlock, onUndo, onRedo, canUndo, canRedo }: CanvasProps) {
+export default function Canvas({ blocks, onUpdateBlock: _onUpdateBlock, onRemoveBlock, onDropBlock, onUndo, onRedo, canUndo, canRedo }: CanvasProps) {
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
   }, [])
@@ -51,7 +51,6 @@ export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlo
           <PageBlockRenderer
             key={block.id}
             block={block}
-            onUpdate={onUpdateBlock}
             onRemove={onRemoveBlock}
           />
         ))}
@@ -81,11 +80,9 @@ export default function Canvas({ blocks, onUpdateBlock, onRemoveBlock, onDropBlo
 
 const PageBlockRenderer = memo(function PageBlockRenderer({
   block,
-  onUpdate,
   onRemove,
 }: {
   block: PageBlock
-  onUpdate: (id: string, props: Record<string, unknown>) => void
   onRemove: (id: string) => void
 }) {
   const { id, type, props } = block
